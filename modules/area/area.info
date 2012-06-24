@@ -1,0 +1,15 @@
+name = Areas
+description = Adds areas.
+core = 7.x
+package = Verb Club
+version = "7.x-1.0-alpha"
+
+files[] = area.controller.inc
+files[] = views/area.views.inc
+files[] = views/area_handler_link_field.inc
+files[] = views/area_handler_delete_link_field.inc
+files[] = views/area_handler_edit_link_field.inc
+files[] = views/area_handler_area_operations_field.inc
+
+dependencies[] = entity
+dependencies[] = verb

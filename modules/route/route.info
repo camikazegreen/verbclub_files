@@ -1,0 +1,13 @@
+name = Routes
+description = Adds routes.
+core = 7.x
+package = Verb Club
+version = "7.x-1.0-alpha"
+
+files[] = route.controller.inc
+
+dependencies[] = entity
+dependencies[] = verb
+dependencies[] = area
+dependencies[] = crag
+dependencies[] = wall

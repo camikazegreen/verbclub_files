@@ -1,0 +1,5 @@
+name = "Pathauto Entity"
+description = "Support module for Pathauto."
+core = "7.x"
+
+dependencies[] = "pathauto"

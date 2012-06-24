@@ -1,0 +1,53 @@
+<?php
+
+function area_schema() {
+    $schema['areas'] = array(
+        'description' => 'The main store for our entity',
+        	'fields' => array(
+          	 'aid' => array(
+         	    'description' => 'Primary Key', 
+                'type' => 'serial', 
+                'unsigned' => TRUE, 
+                'not null' => TRUE,
+            ), 
+			 'name' => array(
+                'description' => 'The actual area name',
+                'type' => 'varchar',
+                'length' => 255,
+                'not null' => TRUE
+            ),
+			'description' => array(
+                'description' => 'The description of the area',
+                'type' => 'varchar',
+                'length' => 255,
+                'not null' => FALSE
+            ),
+			'parent' => array(
+        		'type' => 'int', 
+        		'not null' => TRUE, 
+       			'default' => 0, 
+       		    'size' => 'tiny', 
+                'description' => 'Whether this is a parent area(1) or not(0).',
+            ),
+		    'latitude' => array(
+               'description' => 'Location latitude (decimal degrees).',
+               'type' => 'numeric',
+               'precision' => 10,
+               'scale' => 6, // @@@ Shouldn't these all be 7?
+               'not null' => TRUE,
+               'default' => 0.0,
+            ),
+            'longitude' => array(
+              'description' => 'Location longitude (decimal degrees).',
+              'type' => 'numeric',
+              'precision' => 10,
+              'scale' => 6,
+              'not null' => TRUE,
+              'default' => 0.0,
+            ),
+		),
+        'primary key' => array('aid')
+    );
+    
+    return $schema;
+}

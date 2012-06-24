@@ -1,0 +1,10 @@
+name = Verb Types
+description = Adds verb types.
+core = 7.x
+package = Verb Club
+version = "7.x-1.0-alpha"
+
+files[] = verbtype.controller.inc
+
+dependencies[] = entity
+dependencies[] = verb

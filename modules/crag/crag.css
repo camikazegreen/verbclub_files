@@ -1,0 +1,126 @@
+  html, body, #map {
+    width: 100%;
+    height: 100%;
+    margin:0px;
+    padding:0px;
+  }
+  /* ControlPanel styles */
+  #ThannControl {
+    font-family: 'Tangerine', arial, serif;
+    font-size:36px;
+    color:red;
+    text-shadow: rgba(64, 64, 64, 0.5) 4px 4px 6px;
+  }
+  #ThannControl_accordeon {
+      width: 300px;
+  }
+  /* accordion header */
+  #ThannControl_accordeon h2 {
+  	background-color:#ccc;
+  	margin:0;
+  	padding:5px 15px;
+  	font-size:14px;
+  	font-weight:normal;
+  	border:1px solid #fff;
+  	border-bottom:1px solid #ddd;
+  	cursor:pointer;
+  }
+  /* currently active header */
+  #ThannControl_accordeon h2.current {
+  	cursor:default;
+  	background-color:gold;
+  	font-weight: bold;
+  }
+  /* accordion pane */
+  #ThannControl_accordeon .pane {
+  	border:none;
+  	border-width:0 2px;
+  	display:none;
+  	padding:4px;
+  	font-size:12px;
+  }
+  /* a title inside pane */
+  #ThannControl_accordeon .pane h3 {
+  	font-weight:normal;
+  	margin:0 0 -5px 0;
+  	font-size:16px;
+  	color:#999;
+  }
+
+  /* styles for slider */
+  /* slider root element */
+  .slider {
+  	height:9px;
+  	position:relative;
+  	cursor:pointer;
+  	border:1px solid #333;
+  	width:288px;
+  	margin-top:10px;
+  	margin-bottom:-5px;
+  	-moz-border-radius:5px;
+  	-webkit-border-radius:5px;
+  	-moz-box-shadow:inset 0 0 4px #000;
+    background: -moz-linear-gradient(right top , black, transparent) repeat scroll 0 0 transparent;
+    background: -webkit-gradient(linear, right center, left center, from(#000), to(#fff));
+  }
+
+  /* progress bar (enabled with progress: true) */
+  .progress {
+  	height:9px;
+  	background-color:#C5FF00;
+  	display:none;
+  	opacity:0.6;
+  }
+
+
+  /* drag handle */
+  .handle {
+    -moz-border-radius:5px 5px 30px 30px;
+    -webkit-border-radius:5px 5px 30px 30px;
+    -moz-box-shadow:0 0 6px #000000;
+    border:1px solid #000000;
+    cursor:move;
+    display:block;
+    height:15px;
+    margin-top:1px;
+    position:absolute;
+    top:-4px;
+    width:15px;
+  }
+
+  /* the input field */
+  .range {
+  	border:1px inset #ddd;
+  	margin:6px 0 0 10px;
+  	padding:3px 0;
+  	text-align:center;
+  	width:25px;
+  }
+
+  /* overlay */
+  .modal {
+  		background-color:#fff;
+  		display:none;
+  		width:50%;
+  		padding:15px;
+  		text-align:left;
+  		border:2px solid #333;
+
+  		/* opacity:0.9; */
+  		-moz-border-radius:6px;
+  		-webkit-border-radius:6px;
+  		-moz-box-shadow: 0 0 50px #ccc;
+  		-webkit-box-shadow: 0 0 50px #ccc;
+	}
+
+	.modal h2 {
+		margin:0px;
+		padding:10px 0;
+		border-bottom:1px solid #333;
+		font-size:20px;
+	}
+
+  /* some other styles */
+  .notyet {
+    color: gray;
+  }

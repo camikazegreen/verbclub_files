@@ -1,0 +1,297 @@
+<?php
+
+function route_entity_info() {
+    $route_info['route'] = array(
+        'label' => 'Route name',
+        'controller class' => 'RouteController',
+	    'base table' => 'routes',
+		'label callback' => 'route_label',
+        'uri callback' => 'route_uri',
+        'fieldable' => true,
+		'module' => 'route',
+        'entity keys' => array(
+            'id' => 'rid',
+			'name' => 'name',
+        ),
+        'static cache' => true,
+        'bundles' => array(
+            'route' => array(
+                'label' => 'Route Name',
+                'admin' => array(
+                    'path' => 'admin/structure/route/manage',
+                    'access arguments' => array('administer routes'),
+                ),
+            ),
+        ),
+        'view modes' => array(
+            'full' => array(
+                'label' => 'Routes',
+                'custom settings' => false,
+            ),
+        )
+    );
+    
+    return $route_info;
+}
+
+function route_uri($route) {
+    return array(
+        'path' => 'route/' . $route->id
+    );
+}
+
+function route_label($routes) {
+    return $routes->name;
+}
+
+function route_load($rid = null, $reset = false) {
+    $rids = (isset ($rid) ? array($rid) : array());
+    $route = route_load_multiple($rids, $reset);
+    return $route ? reset($route) : false;
+}
+
+function route_load_multiple($rids = array(), $conditions = array(), $reset = false) {
+    return entity_load('route', $rids, $conditions, $reset);
+}
+
+function route_save($route) {
+    return entity_get_controller('route')->save($route);
+}
+
+function route_permission() {
+    return array(
+        'administer routes' => array(
+            'title' => 'Administer routes',
+            'restrict access' => true,
+        ),
+        'view routes' => array(
+            'title' => 'View routes'
+        ),
+        'create route' => array(
+            'title' => 'Create routes'
+        )
+    );
+}
+
+function route_menu() {
+    $items['admin/structure/route/manage'] = array(
+        'title' => 'Route admin',
+        'description' => 'Manage route structure',
+        'page callback' => 'route_info',
+        'access arguments' => array('administer routes'),
+    );
+    
+    $items['route/%route'] = array(
+        'title callback' => 'route_page_title',
+        'title arguments' => array(1),
+        'page callback' => 'route_view',
+        'page arguments' => array(1),
+        'access arguments' => array('view routes'),
+        'type' => MENU_CALLBACK
+    );
+    
+     $items['route/%route/edit'] = array(
+        'title callback' => 'route_page_title',
+        'title arguments' => array(1),
+        'page callback' => 'route_edit',
+        'page arguments' => array(1),
+        'access arguments' => array('view routes'),
+        'type' => MENU_CALLBACK
+    );
+    
+    $items['route/add'] = array(
+        'title' => 'Add route',
+        'page callback' => 'route_add',
+        'access arguments' => array('create route')
+    );
+    
+    return $items;
+}
+
+function route_info() {
+    return 'Welcome to the administration page for your routes!';
+}
+
+function route_page_title($route) {
+    return $route->name;
+}
+
+function route_view($route, $view_mode = 'full') {
+    $route->content = array();
+    
+    // Build fields content
+    field_attach_prepare_view('route', array($route->rid => $route), $view_mode);
+    entity_prepare_view('route', array($route->rid => $route));
+    $route->content += field_attach_view('route', $route, $view_mode);
+    
+    return $route->content;
+}
+
+function route_edit($route){
+  return drupal_get_form('route_add_form', $route);
+}
+
+function route_field_extra_fields() {
+    $return = array();
+    $return['route']['route'] = array(
+        'form' => array(
+            'name' => array(
+                'label' => 'Name',
+                'description' => 'route name',
+				'weight' => 0,
+            ),
+			'latitude' => array(
+                'label' => 'Latitude',
+                'description' => 'latitude',
+				'weight' => 2,
+            ),
+			'longitude' => array(
+                'label' => 'Longitude',
+                'description' => 'longitude',
+				'weight' => 3,
+            ),			
+        )
+    );
+    
+    return $return;
+}
+
+function route_add() {
+    $route = (object) array(
+        'rid' => '',
+        'type' => 'route',
+        'name' => ''
+    );
+    
+    return drupal_get_form('route_add_form', $route);
+}
+
+
+function route_add_form($form, $form_state, $route) {
+	$multipitch = array('1' => t('Is multipitch'), '0' => t('Not multipitch'));
+    $toprope = array('1' => t('Is toprope'), '0' => t('Not toprope'));
+    $style = array('1' => t('Traditional'), '0' => t('Sport'));
+    $form['name'] = array(
+        '#type' => 'textfield',
+        '#title' => 'Name',
+        '#default_value' => isset($route->name) ? $route->name : '',
+        '#required' => true,
+		'#weight' => 0
+    );
+    $form['description'] = array(
+       	'#type' => 'textarea',
+  	    '#title' => t('Describe it'),
+        '#default_value' => isset($route->description) ? $route->description : '',
+        '#cols' => 60,
+        '#rows' => 5,
+        '#description' => t('Route description.'),
+   );
+    $form['multipitch'] = array(
+        '#type' => 'radios',
+        '#title' => 'Parent',
+        '#default_value' => isset($route->multipitch) ? $route->multipitch : '',
+        '#required' => false,
+		'#weight' => 0,
+	    '#options' => $multipitch,
+        '#description' => t(''),
+    );
+    $form['pitches'] = array(
+        '#type' => 'textfield',
+        '#title' => t('How many pitches'),
+        '#default_value' => isset($route->pitches) ? $route->pitches : '',
+        '#default_value' => 1,
+        '#size' => 8,
+        '#maxlength' =>3,
+        
+    );
+    $form['toprope'] = array(
+        '#type' => 'radios',
+        '#title' => 'Toprope?',
+        '#default_value' => isset($route->toprope) ? $route->toprope : '',
+        '#required' => false,
+		'#weight' => 0,
+	    '#options' => $toprope,
+        '#description' => t('Can you toprope this route without leading?'),
+    );
+    $form['style'] = array(
+        '#type' => 'radios',
+        '#title' => 'Style',
+        '#default_value' => isset($route->style) ? $route->style : '',
+        '#required' => false,
+		'#weight' => 0,
+	    '#options' => $style,
+        '#description' => t('Is this route sport or trad?'),
+    );
+	
+	$form['latitude'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Latitude'),
+        '#default_value' => isset($route->latitude) ? $route->latitude : '',
+        '#size' => 16,
+        '#maxlength' => 20,
+        
+    );
+	
+	 $form['longitude'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Longitude'),
+        '#default_value' => isset($route->longitude) ? $route->longitude : '',
+        '#size' => 16,
+        '#maxlength' => 20,
+        
+    );	
+		
+    $form['actions'] = array(
+        '#type' => 'actions'
+    );
+    
+    $form['actions']['submit'] = array(
+        '#type' => 'submit',
+        '#value' => t('Save')
+    );
+    
+    field_attach_form('route', $route, $form, $form_state);
+    
+    return $form;
+}
+
+function route_add_form_validate($form, $form_state) {
+    $route_submission = (object)$form_state['values'];
+    field_attach_form_validate('route', $route_submission, $form, $form_state);
+}
+
+function route_add_form_submit($form, $form_state) {
+    $route_submission = (object) $form_state['values'];
+    field_attach_submit('route', $route_submission, $form, $form_state);
+    $route = route_save($route_submission);
+    $form_state['redirect'] = "route/$route->rid";
+}
+
+/**
+ * Implement hook_theme().
+ */
+function route_theme() {
+  return array(
+    'route' => array(
+      'render element' => 'elements',
+      'template' => 'route',
+    ),
+   'route_sample_data' => array(
+      'variables' => array('route_sample_data', 'route' => NULL),
+      'template' => 'route-route-data',
+    ),
+
+
+  );
+}  
+function route_form_alter($form, $form_state, $form_id)  {
+      switch ($form_id)  {
+  	 	case 'route_add_form':
+  	 		$form['latitude']['#default_value'] = isset($_GET["lat"]) ? htmlspecialchars($_GET["lat"]) : '';
+			$form['longitude']['#default_value'] = isset($_GET["lng"]) ? htmlspecialchars($_GET["lng"]) : '';
+			$form['field_route_wall']['und']['#default_value'] = isset($_GET["parent"]) ?htmlspecialchars($_GET["parent"]) : '';
+        // print_r($form['field_area_parent']['und'][0]);
+
+  	 		break;
+  	 }
+  }

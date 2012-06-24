@@ -1,0 +1,40 @@
+<?php
+
+function wall_schema() {
+    $schema['walls'] = array(
+        'description' => 'The main store for our entity',
+        	'fields' => array(
+          	 'wid' => array(
+         	    'description' => 'Primary Key', 
+                'type' => 'serial', 
+                'unsigned' => TRUE, 
+                'not null' => TRUE,
+            ), 
+			 'name' => array(
+                'description' => 'The actual wall name',
+                'type' => 'varchar',
+                'length' => 255,
+                'not null' => TRUE
+            ),
+			'latitude' => array(
+               'description' => 'Location latitude (decimal degrees).',
+               'type' => 'numeric',
+               'precision' => 10,
+               'scale' => 6, // @@@ Shouldn't these all be 7?
+               'not null' => TRUE,
+               'default' => 0.0,
+            ),
+            'longitude' => array(
+              'description' => 'Location longitude (decimal degrees).',
+              'type' => 'numeric',
+              'precision' => 10,
+              'scale' => 6,
+              'not null' => TRUE,
+              'default' => 0.0,
+            ),
+		),
+        'primary key' => array('wid')
+    );
+    
+    return $schema;
+}

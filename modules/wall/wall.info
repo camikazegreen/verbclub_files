@@ -1,0 +1,12 @@
+name = Walls
+description = Adds walls.
+core = 7.x
+package = Verb Club
+version = "7.x-1.0-alpha"
+
+files[] = wall.controller.inc
+
+dependencies[] = entity
+dependencies[] = verb
+dependencies[] = area
+dependencies[] = crag

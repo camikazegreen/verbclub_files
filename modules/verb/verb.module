@@ -1,0 +1,663 @@
+<?php
+
+function verb_menu() {
+
+// This calls the verb_get_verbs function to be used in the javascript.    
+
+    $items['verb/get/verbs'] = array(
+     'page callback' => 'verb_output_verbs_page',
+     'type' => MENU_CALLBACK,
+	 'access callback' => TRUE,
+     
+  );
+  
+  // This calls the verb_get_people function to be used in the javascript.    
+
+	$items['verb/get/people'] = array(
+	 'title' => 'People',
+     'description' => 'Output of people.',
+     'page callback' => 'verb_output_people_page',
+     'type' => MENU_CALLBACK,
+	 'access callback' => TRUE,
+     
+  );
+  
+	$items['verb/get/areas/z/%/%/%'] = array(
+	 'title' => 'Areas',
+     'description' => 'Output of areas.',
+	 'page arguments' => array(4,5,6),
+     'page callback' => 'verb_output_parent_areas_page',
+     'type' => MENU_CALLBACK,
+	 'access callback' => TRUE,
+     
+  );
+  
+  // This calls the verb_get_areas/% function to be used in the javascript.    
+
+	$items['verb/get/areas/%/%/%/%'] = array(
+	 'title' => 'Areas',
+     'description' => 'Output of areas.',
+     'page arguments' => array(3,4,5,6),
+     'page callback' => 'verb_output_child_areas_page',
+     'type' => MENU_CALLBACK,
+	 'access callback' => TRUE,
+     
+  );
+  
+  $items['verb/get/crags/%/%/%/%'] = array(
+     'title' => 'Crags',
+     'description' => 'Output of crags.',
+	 'page arguments' => array(3,4,5,6),
+     'page callback' => 'verb_output_child_crags_page',
+     'type' => MENU_CALLBACK,
+	 'access callback' => TRUE,
+     
+  );
+  
+  $items['verb/get/walls/%/%/%/%'] = array(
+     'title' => 'Walls',
+     'description' => 'Output of walls.',
+     'page arguments' => array(3,4,5,6),
+     'page callback' => 'verb_output_child_walls_page',
+     'type' => MENU_CALLBACK,
+	 'access callback' => TRUE,
+     
+  );
+  
+  $items['verb/get/routes/%'] = array(
+     'title' => 'Routes',
+     'description' => 'Output of routes.',
+	 'page arguments' => array(3),
+     'page callback' => 'verb_output_child_routes_page',
+     'type' => MENU_CALLBACK,
+	 'access callback' => TRUE,
+     
+  );
+  //This calls the hidden form
+    $items['verb/event/form'] = array(
+    'title' => 'Event Form',
+    'description' => 'Here is the Event Form',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('verb_event_form'),
+    'access callback' => TRUE,
+    'weight' => 1,
+  );
+
+   return $items;
+	}
+
+
+/**
+ * Implements hook_block_info().
+ */
+function verb_block_info() {
+  $blocks['verb_event'] = array(
+    'info' => t('Event Form'), //The name that will appear in the block list.
+    'cache' => DRUPAL_CACHE_PER_ROLE, //Default
+  );
+  return $blocks;
+}
+
+
+/**
+ * Implements hook_block_view().
+ */
+function verb_block_view($delta = '') {
+  $block = array();
+  switch ($delta) {
+  case "verb_event":
+    $form = drupal_get_form('verb_event_form');
+    $block["subject"] = "Event Form";
+    $block["content"] = $form;
+    break;
+  }
+  return $block;
+}
+
+// This is the page with output for testing. 
+
+function verb_output_verbs_page() {
+	
+  $output = print verb_get_verbs();
+  
+   return $output;
+   
+   
+}
+
+// This is the page with output for people and their pictures. 
+
+function verb_output_people_page() {
+	
+  $output = print verb_get_people();
+  
+   return $output;
+   
+   
+}
+
+// This is the page with output for people and their pictures. 
+
+function verb_output_parent_areas_page($difficulty, $toprope, $style) {
+	
+  $output = print verb_get_parent_areas($difficulty, $toprope, $style);
+  
+   return $output;
+   
+   
+}
+
+// This is the page with json output of child areas. 
+
+function verb_output_child_areas_page($aid, $difficulty, $toprope, $style) {
+ 
+  if (!is_numeric($aid)) {
+    // We will just show a standard "access denied" page in this case.
+    drupal_access_denied();
+    return;  // We actually don't get here.
+  }
+  
+  $output = print verb_get_child_areas($aid, $difficulty, $toprope, $style);
+
+  
+   return $output;
+   
+   
+}
+
+function verb_output_child_routes_page($wid) {
+ 
+  if (!is_numeric($wid)) {
+    // We will just show a standard "access denied" page in this case.
+    drupal_access_denied();
+    return;  // We actually don't get here.
+  }
+  
+  $output = print verb_get_child_routes($wid);
+  return $output;
+   
+   
+}
+
+// This is the page with output for people and their pictures. 
+
+function verb_output_child_crags_page($aid, $difficulty, $toprope, $style) {
+ 
+  if (!is_numeric($aid)) {
+    // We will just show a standard "access denied" page in this case.
+    drupal_access_denied();
+    return;  // We actually don't get here.
+  }
+  $output = print verb_get_child_crags($aid, $difficulty, $toprope, $style);
+  return $output;
+}
+
+function verb_output_child_walls_page($cid, $difficulty, $toprope, $style) {
+ 
+  if (!is_numeric($cid)) {
+    // We will just show a standard "access denied" page in this case.
+    drupal_access_denied();
+    return;  // We actually don't get here.
+  }
+  
+  $output = print verb_get_child_walls($cid, $difficulty, $toprope, $style);
+  return $output;
+}
+
+
+function verb_get_verbs () {
+
+	
+	$query = db_select('verbtype', 'v');
+	$query->join('field_data_field_verbtype_image','i', 'v.vid = i.entity_id'); //JOIN verbtype with image field
+	$query->fields('v',array('name','vid'))//SELECT the fields from verbtype
+	      ->fields('i',array('entity_id','field_verbtype_image_fid'));//SELECT the fields from imagefield   
+ 
+    $result = $query->execute();
+	$record = $result->fetchAll();
+	
+	$i = 0;
+	while ($i < count($record)) {
+	$i = $i;
+	$fid = $record[$i]->field_verbtype_image_fid;
+    $file = file_load($fid);
+	$verbarray[] = array(
+         'name' => $record[$i]->name,
+		 'vid'  => $record[$i]->vid,
+         'path' => "http://verbclub.com/sites/verbclub.com/files/styles/event-form/public/images/verbtype/".$file->filename,
+       );
+	   
+	
+	$i++;
+  	} 
+    $verbs = drupal_json_encode($verbarray);
+	print $verbs;
+
+   	exit;
+
+}
+
+function verb_get_people () {
+	
+	global $user;
+		
+	$query = db_select('users', 'u');
+	$query->join('field_data_field_profile_first_name','f', 'u.uid = f.entity_id'); //JOIN user with firstname
+	$query->join('field_data_field_profile_last_name','l', 'u.uid = l.entity_id'); //JOIN user with lastname
+	$query->fields('u',array('uid','picture'))//SELECT the fields from user
+	      ->fields('f',array('field_profile_first_name_value'))
+		  ->fields('l',array('field_profile_last_name_value'))
+		  ->condition('uid', array($user->uid),'!=')
+		  ->condition('uid', 2,'>');
+    $result = $query->execute();
+    $record = $result->fetchAll();
+    $i = 0;
+    while ($i < count($record)) {
+	$i = $i;
+	$fid = $record[$i]->picture;
+    $file = file_load($fid);
+	$peoplearray[] = array(
+         'uid'  => $record[$i]->uid,
+         'field_profile_first_name_value' => $record[$i]->field_profile_first_name_value,
+		 'field_profile_last_name_value'  => $record[$i]->field_profile_last_name_value,
+         'path' => "http://verbclub.com/sites/verbclub.com/files/styles/event_people/public/images/profile_pictures/".$file->filename,
+       );
+	$i++;
+	} 
+    $people = drupal_json_encode($peoplearray);
+	return $people;
+	 exit;
+
+}		
+
+function verb_get_parent_areas ($difficulty, $toprope, $style) {
+
+   $query = db_select('areas', 'a');
+   $query->distinct();
+   $query->fields('a',array('name','aid','parent','latitude','longitude','description'));
+   $subquery = db_select('field_data_field_area_parent', 'p');
+   $subquery->fields('p', array('entity_id'));
+   $query->condition('a.aid', $subquery, 'NOT IN');
+   
+    $result = $query->execute();
+	$record = $result->fetchAll();
+    $i = 0;
+    while ($i < count($record)) {
+    $i = $i;
+    $areaquery = db_select('field_data_field_area_parent', 'p');
+    $areaquery->join('areas','a', 'a.aid = p.entity_id'); 
+    $areaquery->fields('a',array('aid'))
+	          ->condition('p.field_area_parent_target_id', $record[$i]->aid,'=');
+    $cragquery = db_select('field_data_field_crag_parent_area', 'p');
+    $cragquery->join('crags','c', 'c.cid = p.entity_id');
+    $cragquery->fields('c',array('cid',))
+              ->condition('p.field_crag_parent_area_target_id', $areaquery,'IN');
+    $wallquery = db_select('field_data_field_wall_crag', 'p');
+    $wallquery->join('walls','w', 'w.wid = p.entity_id'); 
+    $wallquery->fields('w',array('wid'))
+              ->condition('p.field_wall_crag_target_id', $cragquery,'IN');
+    $count_query = db_select('field_data_field_route_wall', 'c');
+    $count_query->join('field_data_field_route_difficulty','d', 'd.entity_id = c.entity_id');
+    $count_query->join('routes','r', 'r.rid = c.entity_id');
+    $count_query->condition('c.field_route_wall_target_id', $wallquery, 'IN')
+                ->condition('d.field_route_difficulty_value', $difficulty.'%', 'LIKE')
+                ->condition('r.toprope', $toprope, '=')
+                ->condition('r.style', $style, '=');
+    $count = $count_query->countQuery()->execute()->fetchAll();
+    
+	$areaarray[] = array(
+         'parent' => $record[$i]->parent,
+         'name' => $record[$i]->name,
+		 'aid'  => $record[$i]->aid,
+         'latitude'  => $record[$i]->latitude,
+         'longitude'  => $record[$i]->longitude,
+         'description'  => $record[$i]->description,
+         'count'  => $count[0]->expression,
+       );
+	$i++;
+	} 
+    $areas = drupal_json_encode($areaarray);
+
+	return $areas;
+	 exit;
+}
+
+function verb_get_child_areas ($aid, $difficulty, $toprope, $style) {
+    
+   	$query = db_select('field_data_field_area_parent', 'p');
+    $query->join('areas','a', 'a.aid = p.entity_id'); 
+    $query->fields('p',array('entity_id'))
+		  ->fields('a',array('name','aid','parent','latitude','longitude','description'))
+	      ->condition('p.field_area_parent_target_id', $aid,'=');
+	   
+    $result = $query->execute();
+    $record = $result->fetchAll();
+    $i = 0;
+    while ($i < count($record)) {
+	$i = $i;
+    $cragquery = db_select('field_data_field_crag_parent_area', 'p');
+    $cragquery->join('crags','c', 'c.cid = p.entity_id');
+    $cragquery->fields('c',array('cid',))
+              ->condition('p.field_crag_parent_area_target_id', $record[$i]->aid,'=');
+    $wallquery = db_select('field_data_field_wall_crag', 'p');
+    $wallquery->join('walls','w', 'w.wid = p.entity_id'); 
+    $wallquery->fields('w',array('wid'))
+              ->condition('p.field_wall_crag_target_id', $cragquery,'IN');
+    $count_query = db_select('field_data_field_route_wall', 'c');
+    $count_query->join('field_data_field_route_difficulty','d', 'd.entity_id = c.entity_id');
+    $count_query->join('routes','r', 'r.rid = c.entity_id');
+    $count_query->condition('c.field_route_wall_target_id', $wallquery, 'IN')
+                ->condition('d.field_route_difficulty_value', $difficulty.'%', 'LIKE')
+                ->condition('r.toprope', $toprope, '=')
+                ->condition('r.style', $style, '=');
+    $count = $count_query->countQuery()->execute()->fetchAll();
+    
+	$areaarray[] = array(
+         'parent' => $record[$i]->parent,
+         'name' => $record[$i]->name,
+		 'aid'  => $record[$i]->aid,
+         'latitude'  => $record[$i]->latitude,
+         'longitude'  => $record[$i]->longitude,
+         'description'  => $record[$i]->description,
+         'count'  => $count[0]->expression,
+       );
+	$i++;
+	} 
+    $areas = drupal_json_encode($areaarray);
+
+	return $areas;
+	 exit;
+
+}
+
+function verb_get_child_crags ($aid, $difficulty, $toprope, $style) {
+
+    $query = db_select('field_data_field_crag_parent_area', 'p');
+	$query->join('crags','c', 'c.cid = p.entity_id');
+    $query->join('field_data_field_crag_image','i', 'c.cid = i.entity_id');
+    $query->fields('p',array('entity_id','field_crag_parent_area_target_id'))
+		  ->fields('c',array('name','cid','ne_bounds_lat','ne_bounds_lon','sw_bounds_lat','sw_bounds_lon'))
+          ->fields('i',array('entity_id','field_crag_image_fid'))
+	      ->condition('p.field_crag_parent_area_target_id', $aid,'=');
+	$result = $query->execute();
+    $record = $result->fetchAll();
+    $i = 0;
+	while ($i < count($record)) {
+	$i = $i;
+    $wallquery = db_select('field_data_field_wall_crag', 'p');
+    $wallquery->join('walls','w', 'w.wid = p.entity_id'); 
+    $wallquery->fields('w',array('wid'))
+              ->condition('p.field_wall_crag_target_id', $record[$i]->cid,'=');
+    $count_query = db_select('field_data_field_route_wall', 'c');
+    $count_query->join('field_data_field_route_difficulty','d', 'd.entity_id = c.entity_id');
+    $count_query->join('routes','r', 'r.rid = c.entity_id');
+    $count_query->condition('c.field_route_wall_target_id', $wallquery, 'IN')
+                ->condition('d.field_route_difficulty_value', $difficulty.'%', 'LIKE')
+                ->condition('r.toprope', $toprope, '=')
+                ->condition('r.style', $style, '=');
+    $count = $count_query->countQuery()->execute()->fetchAll();
+    
+	$fid = $record[$i]->field_crag_image_fid;
+    $file = file_load($fid);
+	$cragarray[] = array(
+         'name' => $record[$i]->name,
+		 'cid'  => $record[$i]->cid,
+         'path' => "http://verbclub.com/sites/verbclub.com/files/images/crags/".$file->filename,
+         'ne_bounds_lat'  => $record[$i]->ne_bounds_lat,
+         'ne_bounds_lon'  => $record[$i]->ne_bounds_lon,
+         'sw_bounds_lat'  => $record[$i]->sw_bounds_lat,
+         'sw_bounds_lon'  => $record[$i]->sw_bounds_lon,
+         'count'  => $count[0]->expression,
+       );
+	$i++;
+	} 
+    $crags = drupal_json_encode($cragarray);
+	return $crags;
+	 exit;
+
+}
+
+function verb_get_child_walls ($cid, $difficulty, $toprope, $style) {
+
+    $query = db_select('field_data_field_wall_crag', 'p');
+	$query->join('walls','w', 'w.wid = p.entity_id'); 
+    $query->fields('w',array('name','wid','latitude','longitude'))
+	      ->condition('p.field_wall_crag_target_id', $cid,'=');
+    $result = $query->execute();
+    $record = $result->fetchAll();
+    $i = 0;
+	while ($i < count($record)) {
+	$i = $i;
+    $count_query = db_select('field_data_field_route_wall', 'c');
+    $count_query->join('field_data_field_route_difficulty','d', 'd.entity_id = c.entity_id');
+    $count_query->join('routes','r', 'r.rid = c.entity_id');
+    $count_query->condition('c.field_route_wall_target_id', $record[$i]->wid, '=')
+                ->condition('d.field_route_difficulty_value', $difficulty.'%', 'LIKE')
+                ->condition('r.toprope', $toprope, '=')
+                ->condition('r.style', $style, '=');
+    $count = $count_query->countQuery()->execute()->fetchAll();
+	$wallarray[] = array(
+         'name' => $record[$i]->name,
+		 'wid'  => $record[$i]->wid,
+         'latitude'  => $record[$i]->latitude,
+         'longitude'  => $record[$i]->longitude,
+         'count'  => $count[0]->expression,
+       );         
+	$i++;
+	} 
+    $walls = drupal_json_encode($wallarray);
+	return $walls;
+    exit;
+	   
+}
+
+function verb_get_child_routes ($wid) {
+
+    $query = db_select('field_data_field_route_wall', 'w');
+    $query->join('routes','r', 'r.rid = w.entity_id');
+    $query->join('field_data_field_route_difficulty','d', 'd.entity_id = r.rid');
+    $query->fields('w',array('entity_id'))
+          ->fields('r',array('name','rid','toprope','style','multipitch','pitches','latitude','longitude','description'))
+          ->fields('d',array('field_route_difficulty_value'))
+	      ->condition('w.field_route_wall_target_id', $wid,'=');
+//          ->condition('d.field_route_difficulty_value', $difficulty.'%', 'LIKE')
+//          ->condition('r.toprope', $toprope,'=')
+//          ->condition('r.style', $style,'=');
+	   
+    $result = $query->execute();
+	$record = $result->fetchAll();
+    $i = 0;
+    while ($i < count($record)) {
+    $i = $i;
+    
+	$routearray[] = array(
+         'name' => $record[$i]->name,
+		 'rid'  => $record[$i]->rid,
+         'latitude'  => $record[$i]->latitude,
+         'longitude'  => $record[$i]->longitude,
+         'description'  => $record[$i]->description,
+         'toprope'  => $record[$i]->toprope,
+         'style'  => $record[$i]->style,
+         'multipitch'  => $record[$i]->multipitch,
+         'pitches'  => $record[$i]->pitches,
+         'difficulty'  => $record[$i]->field_route_difficulty_value,
+       );
+	$i++;
+	} 
+    $routes = drupal_json_encode($routearray);
+
+	return $routes;
+	 exit;
+}
+
+function verb_event_form($form, $form_state) {
+	drupal_add_js("http://maps.googleapis.com/maps/api/js?sensor=false",array('type' => 'external','weight' => -200));
+	drupal_add_js('http://ajax.googleapis.com/ajax/libs/jquery/1.5/jquery.min.js',array('type' => 'external','defer' =>TRUE));
+	drupal_add_js('verb.js',array('type' => 'internal','scope' =>'header','weight' => 100,'defer' =>TRUE));
+	drupal_add_js('climbing.js',array('type' => 'internal','scope' =>'header','weight' => 150,'defer' =>TRUE));
+    drupal_add_library('system', 'ui.datepicker');
+    drupal_add_library('system', 'ui.slider');
+
+drupal_add_css('http://fonts.googleapis.com/css?family=Rock+Salt',array('type' => 'external'));
+
+  $form['event'] = array(
+    '#title' => '',
+    '#type' => 'fieldset',
+  );
+  $form['event']['title'] = array(
+    '#title' => t(''),
+    '#size' => 30,
+    '#type' => 'textfield',  
+    '#default_value' => 'title', 
+    '#required' => TRUE,
+    '#states' => array(
+        'visible' => array(
+       ':input[name=more-info]' => array('value' => t('herp derping'))
+      )
+    )  
+  );
+  $form['event']['something'] = array(
+    '#title' => t(''),
+    '#type' => 'textfield',
+    '#default_value' => '6',
+    '#required' => TRUE,
+    '#states' => array(
+        'visible' => array(
+       ':input[name=more-info]' => array('value' => t('herp derping'))
+      )
+    )
+  );
+  $form['event']['someone'] = array(
+    '#title' => t(''),
+    '#type' => 'textfield',
+    '#default_value' => 'cool people',
+    '#required' => TRUE,
+    '#states' => array(
+        'visible' => array(
+       ':input[name=more-info]' => array('value' => t('herp derping'))
+      )
+    )
+  );
+  $form['event']['somewhere'] = array(
+    '#title' => t(''),
+    '#type' => 'textfield',
+    '#default_value' => 'go somewhere',
+    '#required' => TRUE,
+    '#states' => array(
+        'visible' => array(
+       ':input[name=more-info]' => array('value' => t('herp derping'))
+      )
+    )
+  );
+  
+   $form['event']['crag'] = array(
+    '#title' => t(''),
+    '#type' => 'textfield',
+    '#default_value' => '',
+    '#required' => FALSE,
+    '#states' => array(
+        'visible' => array(
+       ':input[name=more-info]' => array('value' => t('herp derping'))
+      )
+    )
+  );
+  
+   $form['event']['wall'] = array(
+    '#title' => t(''),
+    '#type' => 'textfield',
+    '#default_value' => '',
+    '#required' => FALSE,
+    '#states' => array(
+        'visible' => array(
+       ':input[name=more-info]' => array('value' => t('herp derping'))
+      )
+    )
+  );
+  $form['event']['sometime'] = array(
+    '#title' => t(''),
+    '#type' => 'textfield',
+    '#default_value' => 'soon',
+    '#required' => TRUE,
+    '#states' => array(
+        'visible' => array(
+       ':input[name=more-info]' => array('value' => t('herp derping'))
+      )
+    )
+  );
+  $form['event']['jsform'] = array(
+    '#type' => 'markup',
+    '#value' => 'Here is my markup',
+	'#prefix' => "<div id='event-form-center' onClick='moveEventForm()'>
+                <div id='event-form'>
+	               <form name='eventform'><div id='event-form-first-row'>I want to go&nbsp;
+                    <div class='scribbly' /*onClick='getVerbs()'*/id='button1'>Rock Climbing</div>&nbsp;with&nbsp;
+					<div class='scribbly' onClick='getPeople()'id='button2'>Cool People</div></div><br><br>
+                    <div id='event-form-second-row'>Lets go&nbsp;
+					<div class='scribbly' onClick='whereArray()'id='button3'>Somewhere</div>&nbsp;
+			        <div class='scribbly' onClick='getPicker()'id='button4'>Soon</div></div>
+                   </form>
+				  </div>
+				  </div>",
+    '#suffix' => '</br>',
+  );
+  $form['event']['more-info'] = array(
+    '#title' => t('More info'),
+    '#type' => 'textarea',
+    '#default_value' => '',
+    '#required' => FALSE,
+    '#states' => array(
+        'invisible' => array(
+       ':input[name=something]' => array('value' => t('6'))
+      )
+    )
+  );
+  $form['event']['actions'] = array(
+    '#type' => 'actions'
+  );
+  $form['event']['actions']['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Save')
+  );
+    return $form;
+}
+
+function verb_event_form_submit($form, $form_state) {
+/*
+ *      Generate the basic node information to save an empty node (copied from the node module)
+*/
+  global $user;
+  
+  
+  $node = array(
+      'uid' => $user->uid, 
+      'name' => (isset($user->name) ? $user->name : ''), 
+      'type' => 'event', 
+      'language' => 'und'
+      );
+//      load the node.pages.inc file if required
+  if( ! function_exists("node_object_prepare")) { 
+    include_once(drupal_get_path('module', 'node') . '/node.pages.inc');
+  }
+  $node = (object)$node;
+  node_object_prepare($node); 
+  $node->title = $form_state['values']['title'];
+  $node->field_event_verbtype[$node->language][]['target_id'] = $form_state['values']['entity id'] = $form_state['values']['something'];
+  $uids = explode(',', $form_state['values']['someone']);
+  
+  foreach($uids as $uid){
+  $node->field_event_people[$node->language][]['target_id'] = $form_state['values']['entity id'] = $uid;
+  };
+  
+  $node->field_event_where[$node->language][]['target_id'] = $form_state['values']['entity id'] = $form_state['values']['somewhere'];
+  if ($form_state['values']['crag'] != NULL)
+  {
+  $node->field_event_crag[$node->language][]['target_id'] = $form_state['values']['entity id'] = $form_state['values']['crag'];
+  }
+   if ($form_state['values']['wall'] != NULL)
+  {
+  $node->field_event_wall[$node->language][]['target_id'] = $form_state['values']['entity id'] = $form_state['values']['wall'];
+  }
+  $node->field_event_date[$node->language][]['value'] = "2012-02-25T10:35:58";
+  node_save($node);
+  drupal_goto('node/'.$node->nid);
+}

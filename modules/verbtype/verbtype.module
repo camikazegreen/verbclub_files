@@ -1,0 +1,177 @@
+<?php
+
+function verbtype_entity_info() {
+    $verbtype_info['verbtype'] = array(
+        'label' => 'Verb type',
+        'controller class' => 'VerbTypeController',
+        'base table' => 'verbtype',
+		'label callback' => 'verbtype_label',
+        'uri callback' => 'verbtype_uri',
+        'fieldable' => true,
+        'entity keys' => array(
+            'id' => 'vid',
+        ),
+        'static cache' => true,
+        'bundles' => array(
+            'verbtype' => array(
+                'label' => 'Verb Type',
+                'admin' => array(
+                    'path' => 'admin/structure/verbtype/manage',
+                    'access arguments' => array('administer verbtypes'),
+                ),
+            ),
+        ),
+        'view modes' => array(
+            'full' => array(
+                'label' => 'verbtypes',
+                'custom settings' => false,
+            ),
+        )
+    );
+    
+    return $verbtype_info;
+}
+
+function verbtype_uri($verbtype) {
+    return array(
+        'path' => 'verbtype/' . $verbtype->vid
+    );
+}
+function verbtype_label($verbtypes) {
+    return $verbtypes->name;
+}
+
+function verbtype_load($vid = null, $reset = false) {
+    $vids = (isset ($vid) ? array($vid) : array());
+    $verbtype = verbtype_load_multiple($vids, $reset);
+    return $verbtype ? reset($verbtype) : false;
+}
+
+function verbtype_load_multiple($vids = array(), $conditions = array(), $reset = false) {
+    return entity_load('verbtype', $vids, $conditions, $reset);
+}
+
+function verbtype_save($verbtype) {
+    return entity_get_controller('verbtype')->save($verbtype);
+}
+
+function verbtype_permission() {
+    return array(
+        'administer verbtypes' => array(
+            'title' => 'Administer verbtypes',
+            'restrict access' => true,
+        ),
+        'view verbtypes' => array(
+            'title' => 'View verbtypes'
+        ),
+        'create verbtype' => array(
+            'title' => 'Create verbtypes'
+        )
+    );
+}
+
+function verbtype_menu() {
+    $items['admin/structure/verbtype/manage'] = array(
+        'title' => 'Verb Type Admin',
+        'description' => 'Manage verbtype structure',
+        'page callback' => 'verbtype_info',
+        'access arguments' => array('administer verbtypes'),
+    );
+    
+    $items['verbtype/%verbtype'] = array(
+        'title callback' => 'verbtype_page_title',
+        'title arguments' => array(1),
+        'page callback' => 'verbtype_view',
+        'page arguments' => array(1),
+        'access arguments' => array('view verbtypes'),
+        'type' => MENU_CALLBACK
+    );
+    
+    $items['verbtype/add'] = array(
+        'title' => 'Add verb type',
+        'page callback' => 'verbtype_add',
+        'access arguments' => array('create verbtype')
+    );
+    
+    return $items;
+}
+
+function verbtype_info() {
+    return 'Welcome to the administration page for your verbtypes!';
+}
+
+function verbtype_page_title($verbtype) {
+    return $verbtype->name;
+}
+
+function verbtype_view($verbtype, $view_mode = 'full') {
+    $verbtype->content = array();
+    
+    // Build fields content
+    field_attach_prepare_view('verbtype', array($verbtype->vid => $verbtype), $view_mode);
+    entity_prepare_view('verbtype', array($verbtype->vid => $verbtype));
+    $verbtype->content += field_attach_view('verbtype', $verbtype, $view_mode);
+    
+    return $verbtype->content;
+}
+
+function verbtype_field_extra_fields() {
+    $return = array();
+    $return['verbtype']['verbtype'] = array(
+        'form' => array(
+            'name' => array(
+                'label' => 'Name',
+                'description' => 'Verb Type',
+				'weight' => 0,
+            )
+        )
+    );
+    
+    return $return;
+}
+
+function verbtype_add() {
+    $verbtype = (object) array(
+        'vid' => '',
+        'type' => 'verbtype',
+        'name' => ''
+    );
+    
+    return drupal_get_form('verbtype_add_form', $verbtype);
+}
+
+
+function verbtype_add_form($form, $form_state, $verbtype) {
+	
+	$form['name'] = array(
+        '#type' => 'textfield',
+        '#title' => 'Name',
+        '#required' => true,
+		'#weight' => 0
+    );
+	  
+    $form['actions'] = array(
+        '#type' => 'actions'
+    );
+    
+    $form['actions']['submit'] = array(
+        '#type' => 'submit',
+        '#value' => t('Save')
+    );
+    
+    field_attach_form('verbtype', $verbtype, $form, $form_state);
+    
+    return $form;
+}
+
+function verbtype_add_form_validate($form, $form_state) {
+    $verbtype_submission = (object)$form_state['values'];
+    field_attach_form_validate('verbtype', $verbtype_submission, $form, $form_state);
+}
+
+function verbtype_add_form_submit($form, $form_state) {
+    $verbtype_submission = (object) $form_state['values'];
+    field_attach_submit('verbtype', $verbtype_submission, $form, $form_state);
+    $verbtype = verbtype_save($verbtype_submission);
+    $form_state['redirect'] = "verbtype/$verbtype->vid";
+}

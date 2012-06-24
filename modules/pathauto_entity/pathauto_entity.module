@@ -1,0 +1,92 @@
+<?php
+
+/**
+ * Helper function: return a list of supported entity types.
+ */
+function pathauto_entity_supported_entity_types() {
+  $entity_infos = entity_get_info();
+  unset($entity_infos['node']);
+  unset($entity_infos['user']);
+  unset($entity_infos['taxonomy_term']);
+
+  foreach ($entity_infos as $entity_type => $entity_info) {
+    if (empty($entity_info['uri callback']) || empty($entity_info['token type'])) {
+      unset($entity_infos[$entity_type]);
+    }
+  }
+
+  drupal_alter('pathauto_entity_supported_entity_types', $entity_infos);
+
+  return $entity_infos;
+}
+
+/**
+ * Implements hook_pathauto().
+ */
+function pathauto_entity_pathauto($op) {
+  switch ($op) {
+    case 'settings':
+      $settings = array();
+      foreach (pathauto_entity_supported_entity_types() as $entity_type => $entity_info) {
+        $settings[$entity_type] = (object) array(
+          'module' => $entity_type,
+          'token_type' => $entity_info['token type'],
+          'groupheader' => $entity_info['label'],
+          'patterndescr' => t('Default pattern'),
+          'patterndefault' => '',
+          'batch_update_callback' => 'user_pathauto_bulk_update_batch_process',
+          'batch_file' => drupal_get_path('module', 'pathauto_entity') . '/pathauto_entity.pathauto.inc',
+        );
+      }
+      return $settings;
+    default:
+      break;
+  }
+}
+
+/**
+ * Implements hook_entity_insert().
+ */
+function pathauto_entity_entity_insert($entity, $entity_type) {
+  // @todo Remove the next line when http://drupal.org/node/1025870 is fixed.
+  unset($entity->uri);
+  pathauto_entity_update_alias($entity_type, $entity, 'insert');
+}
+
+/**
+ * Implements hook_entity_update().
+ */
+function pathauto_entity_entity_update($entity, $entity_type) {
+  pathauto_entity_update_alias($entity_type, $entity, 'update');
+}
+
+/**
+ * Implements hook_entity_delete().
+ */
+function pathauto_entity_entity_delete($entity, $entity_type) {
+  pathauto_entity_path_delete_all($entity_type, $entity);
+}
+
+function pathauto_entity_update_alias($entity_type, $entity, $op) {
+  // Skip processing if we are not managing this entity type.
+  $types = pathauto_entity_supported_entity_types();
+  if (!isset($types[$entity_type])) {
+    return;
+  }
+
+  // Skip processing if the user has disabled pathauto for the node.
+  if (isset($entity->path['pathauto']) && empty($entity->path['pathauto'])) {
+    return;
+  }
+
+  // Skip processing if the entity has no pattern.
+  $entity_info = entity_get_info($entity_type);
+  list($id, $vid, $bundle) = entity_extract_ids($entity_type, $entity);
+  if (!pathauto_pattern_load_by_entity($entity_type, $bundle)) {
+    return;
+  }
+
+  module_load_include('inc', 'pathauto');
+  $uri = entity_uri($entity_type, $entity);
+  pathauto_create_alias($entity_type, $op, $uri['path'], array($entity_info['token type'] => $entity), $bundle);
+}

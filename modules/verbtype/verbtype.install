@@ -1,0 +1,24 @@
+<?php
+
+function verbtype_schema() {
+    $schema['verbtype'] = array(
+        'description' => 'The main store for our entity',
+        'fields' => array(
+            'vid' => array(
+                'description' => 'Primary key for our table of verbtypes',
+                'type' => 'serial',
+                'unsigned' => true,
+                'not null' => true,
+            ),
+			 'name' => array(
+                'description' => 'The actual verb type name',
+                'type' => 'varchar',
+                'length' => 255,
+                'not null' => TRUE
+            ),
+         ),
+        'primary key' => array('vid')
+    );
+    
+    return $schema;
+}

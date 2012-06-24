@@ -1,0 +1,13 @@
+name = UR-Panels Visibility
+description = "Provide visibility for panels panes and pages based on User Relationships"
+dependencies[] = user_relationships
+dependencies[] = ctools
+core = 6.x
+package = "User Relationships"
+
+; Information added by drupal.org packaging script on 2011-09-25
+version = "7.x-1.0-alpha3"
+core = "7.x"
+project = "user_relationships"
+datestamp = "1316948524"
+

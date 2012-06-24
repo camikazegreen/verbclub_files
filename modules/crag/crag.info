@@ -1,0 +1,12 @@
+name = Crag
+description = Adds Crags.
+core = 7.x
+package = Verb Club
+version = "7.x-1.0-alpha"
+
+files[] = crag.controller.inc
+
+dependencies[] = entity
+dependencies[] = verb
+dependencies[] = area
+stylesheets[all][] = crag.css

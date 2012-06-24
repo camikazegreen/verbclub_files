@@ -1,0 +1,56 @@
+<?php
+
+function crag_schema() {
+    $schema['crags'] = array(
+        'description' => 'The main store for our entity',
+        	'fields' => array(
+          	 'cid' => array(
+         	    'description' => 'Primary Key', 
+                'type' => 'serial', 
+                'unsigned' => TRUE, 
+                'not null' => TRUE,
+            ), 
+			 'name' => array(
+                'description' => 'The actual crag name',
+                'type' => 'varchar',
+                'length' => 255,
+                'not null' => TRUE
+            ),
+			'ne_bounds_lat' => array(
+               'description' => 'Northeast bounds latitude  (decimal degrees).',
+               'type' => 'numeric',
+               'precision' => 10,
+               'scale' => 6, // @@@ Shouldn't these all be 7?
+               'not null' => TRUE,
+               'default' => 0.0,
+            ),
+			'ne_bounds_lon' => array(
+               'description' => 'Northeast bounds longitude (decimal degrees).',
+               'type' => 'numeric',
+               'precision' => 10,
+               'scale' => 6, // @@@ Shouldn't these all be 7?
+               'not null' => TRUE,
+               'default' => 0.0,
+            ),
+            'sw_bounds_lat' => array(
+               'description' => 'Southwest bounds latitude  (decimal degrees).',
+               'type' => 'numeric',
+               'precision' => 10,
+               'scale' => 6, // @@@ Shouldn't these all be 7?
+               'not null' => TRUE,
+               'default' => 0.0,
+            ),
+			'sw_bounds_lon' => array(
+               'description' => 'Southwest bounds longitude  (decimal degrees).',
+               'type' => 'numeric',
+               'precision' => 10,
+               'scale' => 6, // @@@ Shouldn't these all be 7?
+               'not null' => TRUE,
+               'default' => 0.0,
+            ),
+		),
+        'primary key' => array('cid')
+    );
+    
+    return $schema;
+}

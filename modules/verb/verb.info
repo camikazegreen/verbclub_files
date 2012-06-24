@@ -1,0 +1,13 @@
+name = Verb
+description = Provides all of the functions for the event form.
+core = 7.x
+package = Verb Club
+
+dependencies[] = entity
+scripts[]= verb.js
+scripts[]= climbing.js
+
+; Information added by drupal.org packaging script on 2011-07-03
+version = "7.x-1.0-alpha2"
+core = "7.x"
+project = "verb"

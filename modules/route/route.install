@@ -1,0 +1,75 @@
+<?php
+
+function route_schema() {
+    $schema['routes'] = array(
+        'description' => 'The main store for our entity',
+        	'fields' => array(
+          	 'rid' => array(
+         	    'description' => 'Primary Key', 
+                'type' => 'serial', 
+                'unsigned' => TRUE, 
+                'not null' => TRUE,
+            ), 
+			 'name' => array(
+                'description' => 'The actual route name',
+                'type' => 'varchar',
+                'length' => 255,
+                'not null' => TRUE
+            ),
+            'description' => array(
+                'description' => 'The description of the route',
+                'type' => 'varchar',
+                'length' => 255,
+                'not null' => FALSE
+            ),
+			'latitude' => array(
+               'description' => 'Location latitude (decimal degrees).',
+               'type' => 'numeric',
+               'precision' => 10,
+               'scale' => 6, // @@@ Shouldn't these all be 7?
+               'not null' => TRUE,
+               'default' => 0.0,
+            ),
+            'longitude' => array(
+              'description' => 'Location longitude (decimal degrees).',
+              'type' => 'numeric',
+              'precision' => 10,
+              'scale' => 6,
+              'not null' => TRUE,
+              'default' => 0.0,
+            ),
+            'multipitch' => array(
+            	'type' => 'int', 
+        		'not null' => TRUE, 
+       			'default' => 0, 
+       		    'size' => 'tiny', 
+                'description' => 'Whether this is a multipitch route(1) or not(0).',
+            ),
+            'pitches' => array(
+                'type' => 'int', 
+        		'not null' => TRUE, 
+       			'default' => 0, 
+       		    'size' => 'small', 
+                'description' => 'Number of pitches',
+            ),
+            'toprope' => array(
+                'type' => 'int', 
+        		'not null' => TRUE, 
+       			'default' => 0, 
+       		    'size' => 'tiny', 
+                'description' => 'Whether this is a toprope route(1) or not(0).',
+            ),
+            'style' => array(
+                'type' => 'int', 
+        		'not null' => TRUE, 
+       			'default' => 0, 
+       		    'size' => 'tiny', 
+                'description' => 'Whether this is a sport(1) or trad route(0).',
+            ),
+            
+		),
+        'primary key' => array('rid')
+    );
+    
+    return $schema;
+}

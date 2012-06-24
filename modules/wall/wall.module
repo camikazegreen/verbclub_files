@@ -1,0 +1,242 @@
+<?php
+
+function wall_entity_info() {
+    $wall_info['wall'] = array(
+        'label' => 'Wall name',
+        'controller class' => 'WallController',
+	    'base table' => 'walls',
+		'label callback' => 'wall_label',
+        'uri callback' => 'wall_uri',
+        'fieldable' => true,
+		'module' => 'wall',
+        'entity keys' => array(
+            'id' => 'wid',
+			'name' => 'name',
+        ),
+        'static cache' => true,
+        'bundles' => array(
+            'wall' => array(
+                'label' => 'Wall Name',
+                'admin' => array(
+                    'path' => 'admin/structure/wall/manage',
+                    'access arguments' => array('administer walls'),
+                ),
+            ),
+        ),
+        'view modes' => array(
+            'full' => array(
+                'label' => 'Walls',
+                'custom settings' => false,
+            ),
+        )
+    );
+    
+    return $wall_info;
+}
+
+function wall_uri($wall) {
+    return array(
+        'path' => 'wall/' . $wall->id
+    );
+}
+
+function wall_label($walls) {
+    return $walls->name;
+}
+
+function wall_load($wid = null, $reset = false) {
+    $wids = (isset ($wid) ? array($wid) : array());
+    $wall = wall_load_multiple($wids, $reset);
+    return $wall ? reset($wall) : false;
+}
+
+function wall_load_multiple($wids = array(), $conditions = array(), $reset = false) {
+    return entity_load('wall', $wids, $conditions, $reset);
+}
+
+function wall_save($wall) {
+    return entity_get_controller('wall')->save($wall);
+}
+
+function wall_permission() {
+    return array(
+        'administer walls' => array(
+            'title' => 'Administer walls',
+            'restrict access' => true,
+        ),
+        'view walls' => array(
+            'title' => 'View walls'
+        ),
+        'create wall' => array(
+            'title' => 'Create walls'
+        )
+    );
+}
+
+function wall_menu() {
+    $items['admin/structure/wall/manage'] = array(
+        'title' => 'Wall admin',
+        'description' => 'Manage wall structure',
+        'page callback' => 'wall_info',
+        'access arguments' => array('administer walls'),
+    );
+    
+    $items['wall/%wall'] = array(
+        'title callback' => 'wall_page_title',
+        'title arguments' => array(1),
+        'page callback' => 'wall_view',
+        'page arguments' => array(1),
+        'access arguments' => array('view walls'),
+        'type' => MENU_CALLBACK
+    );
+    
+    $items['wall/add'] = array(
+        'title' => 'Add wall',
+        'page callback' => 'wall_add',
+        'access arguments' => array('create wall')
+    );
+    
+    return $items;
+}
+
+function wall_info() {
+    return 'Welcome to the administration page for your walls!';
+}
+
+function wall_page_title($wall) {
+    return $wall->name;
+}
+
+function wall_view($wall, $view_mode = 'full') {
+    $wall->content = array();
+    
+    // Build fields content
+    field_attach_prepare_view('wall', array($wall->wid => $wall), $view_mode);
+    entity_prepare_view('wall', array($wall->wid => $wall));
+    $wall->content += field_attach_view('wall', $wall, $view_mode);
+    
+    return $wall->content;
+}
+
+function wall_field_extra_fields() {
+    $return = array();
+    $return['wall']['wall'] = array(
+        'form' => array(
+            'name' => array(
+                'label' => 'Name',
+                'description' => 'wall name',
+				'weight' => 0,
+            ),
+			'latitude' => array(
+                'label' => 'Latitude',
+                'description' => 'latitude',
+				'weight' => 2,
+            ),
+			'longitude' => array(
+                'label' => 'Longitude',
+                'description' => 'longitude',
+				'weight' => 3,
+            ),			
+        )
+    );
+    
+    return $return;
+}
+
+function wall_add() {
+    $wall = (object) array(
+        'wid' => '',
+        'type' => 'wall',
+        'name' => ''
+    );
+  
+    return drupal_get_form('wall_add_form', $wall);
+}
+
+
+function wall_add_form($form, $form_state, $wall) {
+	
+    $form['name'] = array(
+        '#type' => 'textfield',
+        '#title' => 'Name',
+        '#required' => true,
+		'#weight' => 0
+    );
+	
+	$form['latitude'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Latitude'),
+        '#default_value' => 0.0,
+        '#size' => 16,
+        '#maxlength' => 20,
+        
+    );
+	
+	 $form['longitude'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Longitude'),
+        '#default_value' => isset($wall->longitude) ? $wall->longitude : '',
+        '#size' => 16,
+        '#maxlength' => 20,
+        
+    );	
+		
+    $form['actions'] = array(
+        '#type' => 'actions'
+    );
+    
+    $form['actions']['submit'] = array(
+        '#type' => 'submit',
+        '#value' => t('Save')
+    );
+    
+    field_attach_form('wall', $wall, $form, $form_state);
+   
+    return $form;
+}
+
+function wall_add_form_validate($form, $form_state) {
+    $wall_submission = (object)$form_state['values'];
+    field_attach_form_validate('wall', $wall_submission, $form, $form_state);
+}
+
+function wall_add_form_submit($form, $form_state) {
+    $wall_submission = (object) $form_state['values'];
+    field_attach_submit('wall', $wall_submission, $form, $form_state);
+    $wall = wall_save($wall_submission);
+    $form_state['redirect'] = "wall/$wall->wid";
+}
+
+/**
+ * Implement hook_theme().
+ */
+function wall_theme() {
+  return array(
+//    'wall_add_list' => array(
+//      'variables' => array('content' => array()),
+//      'file' => 'model.admin.inc',
+//    ),
+    'wall' => array(
+      'render element' => 'elements',
+      'template' => 'wall',
+    ),
+   'wall_sample_data' => array(
+      'variables' => array('wall_sample_data', 'wall' => NULL),
+      'template' => 'wall-wall-data',
+    ),
+
+
+  );
+}  
+function wall_form_alter($form, $form_state, $form_id)  {
+      switch ($form_id)  {
+  	 	case 'wall_add_form': dsm($form);
+  	 		$form['latitude']['#default_value'] = isset($_GET["lat"]) ? htmlspecialchars($_GET["lat"]) : '';
+			$form['longitude']['#default_value'] = isset($_GET["lng"]) ? htmlspecialchars($_GET["lng"]) : '';
+			$form['field_wall_crag']['und']['#default_value'] = isset($_GET["parent"]) ?htmlspecialchars($_GET["parent"]) : '';
+         
+
+  	 		break;
+  	 }
+
+  }
